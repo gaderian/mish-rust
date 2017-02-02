@@ -1,5 +1,6 @@
 extern crate duct;
-use duct::{cmd,sh};
+use duct::{Expression,cmd,sh};
+use std::io::{stdin,stdout,Write};
 
 /* Tried using the duct crate to handle piping but get various errors when 
  * compiling the needed crates. Might be because the rustc version is 1.11.0
@@ -12,11 +13,11 @@ fn main() {
 
 
     let commands = s.split('|').map(|x| x.split_whitespace());
-    let mut executable : Option<Expression>;
+    let mut executable : Option<Expression> = None;
 
-    for command in commands {
+    for mut command in commands {
         if let Some(com) = command.next() {
-            let args = vec![];
+            let mut args = vec![];
             for argument in command {
                 args.push(argument);
             }
