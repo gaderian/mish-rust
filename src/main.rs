@@ -1,34 +1,47 @@
 extern crate duct;
-use duct::{Expression,cmd,sh};
+use duct::{Expression,cmd};
 use std::io::{stdin,stdout,Write};
 
 /* Tried using the duct crate to handle piping but get various errors when 
  * compiling the needed crates. Might be because the rustc version is 1.11.0
  * and Cargo is at 0.12.0-nightly*/
 fn main() {
-    let mut s = String::new();
-    print!("mish: ");
-    let _=stdout().flush();
-    stdin().read_line(&mut s).expect("Did not enter a correct string");
+    loop {
+        let mut s = String::new();
+        print!("mish: ");
+        let _=stdout().flush();
+        stdin().read_line(&mut s).expect("Did not enter a correct string");
 
 
-    let commands = s.split('|').map(|x| x.split_whitespace());
-    let mut executable : Option<Expression> = None;
+        let commands = s.split('|').map(|x| x.split_whitespace());
+        //if commands.is_empty() { println!("no input"); break; }
+        let mut executable : Option<Expression> = None;
 
-    for mut command in commands {
-        if let Some(com) = command.next() {
-            let mut args = vec![];
-            for argument in command {
-                args.push(argument);
-            }
+        for mut command in commands {
+            if let Some(com) = command.next() {
+                let mut args = vec![];
+                //print!("{} ", com);
+                for argument in command {
+                    //print!("{} ", argument);
+                    args.push(argument);
+                }
 
-            if executable.is_some() {
-                executable = Some(executable.unwrap().pipe(cmd(com, args)));
-            }
-            else {
-                executable = Some(cmd(com, args));
+                if executable.is_some() {
+                    //print!("piping");
+                    executable = Some(executable.unwrap().pipe(cmd(com, args)));
+                }
+                else {
+                    //print!("first command");
+                    executable = Some(cmd(com, args));
+                }
+                //print!("\n");
             }
         }
+
+        match executable.unwrap().read() {
+            Ok(a) => println!("{}",a),
+            Err(e) => println!("{}", e),
+        };
     }
 }
 
